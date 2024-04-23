@@ -1,10 +1,17 @@
-CREATE TABLE Region{
-    code_region     VARCHAR(2),
-    libelle_region  VARCHAR(50)
-}
+CREATE TABLE Region(
+    code_region         VARCHAR(3),
+    libelle_region      VARCHAR(50) UNIQUE
+);
 
-CREATE TABLE Departement{
-    code_region     VARCHAR(2),
-    libelle_region  VARCHAR(50)
-}
+CREATE TABLE Departement(
+    code_departement    VARCHAR(3),
+    nom_departement     VARCHAR(50) UNIQUE
+);
+
+
+CREATE TABLE Commune(
+    code_insee_de_la_commune   VARCHAR(3),
+    nom_departement     VARCHAR(50) UNIQUE
+);
+
 
