@@ -2,23 +2,38 @@ drop schema if exists "sae_bdd" cascade;
 create schema "sae_bdd";
 set schema 'sae_bdd'; 
 
+--table creer :
+--region
+--departement
+--commune
+--quartier prioritaire
+--Type
+--etablissement
+
+
+
 
 CREATE TABLE _region(
-    code_region                VARCHAR(3),
+    code_region                VARCHAR(3) PRIMARY KEY,
     libelle_region             VARCHAR(50) UNIQUE
 );
---alter table 
+
+
+--alter table fait 
+
 CREATE TABLE _departement(
-    code_departement           VARCHAR(3),
+    code_departement           VARCHAR(3) PRIMARY KEY,
     nom_departement            VARCHAR(50) UNIQUE,
-    code_region                VARCHAR(50)
+    code_region                VARCHAR(3)
 );
+
+ALTER TABLE 
 
 --alter table
 CREATE TABLE _commune(
     code_insee_de_la_commune   VARCHAR(3) PRIMARY KEY,
     nom_dep_la_commune         VARCHAR(50) UNIQUE,
-    code_departement           VARCHAR(50)
+    code_departement           VARCHAR(50) NULL 
 );
 
 
@@ -89,8 +104,8 @@ CREATE TABLE _a_proximite(
 );
 
 alter table _carac_tout_etablissement ADD CONSTRAINT competences_fk FOREIGN KEY(lib_competence) REFERENCES _competences(lib_competence);
-alter table
-alter table
+alter table _departement ADD CONSTRAINT fk_departement_region FOREIGN KEY (code_region) REFERENCES _region(code_region);
+alter table _commune ADD CONSTRAINT fk_commune_departement FOREIGN KEY (code_departement) REFERENCES _departement(code_departement);
 
 
 alter table
