@@ -75,7 +75,6 @@ CREATE TABLE _etablissement(
     code_academie              integer,
     code_nat                   VARCHAR(50),
     code_commune               VARCHAR(3),
-    code_nat                   VARCHAR(50),
     code_academie              VARCHAR(50)              
 );
 
@@ -101,7 +100,7 @@ CREATE TABLE _carac_college(
     nb_eleves_segpa            integer,
     nb_eleves_ulis             integer
     uai                        VARCHAR(50),
-    anne_scolaire              VARCHAR(50)
+    annee_scolaire              VARCHAR(50)
 );
 
 CREATE TABLE _classe(
@@ -112,6 +111,17 @@ CREATE TABLE _classe(
 CREATE TABLE _a_proximite(
     uai                        VARCHAR(50),
     code_quartier_prioritaire  VARCHAR(3)
+);
+
+CREATE TABLE _carac_selon_classe(
+    nb_eleves_hors_segpa_hors_ulis_selon_niveau INTEGER,
+    nb_eleves_hors_segpa_selon_niveau INTEGER,
+    nb_eleves_ulis_selon_niveau INTEGER,
+    effectif_filles            INTEGER,
+    effectif_garçons           INTEGER,
+    uai                        VARCHAR(50),
+    annee_scolaire             VARCHAR(4),
+    classe                     VARCHAR(50)
 );
 
 
@@ -127,18 +137,18 @@ alter table _carac_college ADD CONSTRAINT annee_fk FOREIGN KEY(anne_scolaire) RE
 alter table _departement ADD CONSTRAINT fk_departement_region FOREIGN KEY (code_region) REFERENCES _region(code_region);
 
 --contrainte commmune
-alter table _commune ADD CONSTRAINT fk_commune_departement FOREIGN KEY (code_departement) REFERENCES _departement(anne_scolaire);
+alter table _commune ADD CONSTRAINT fk_commune_departement FOREIGN KEY (code_departement) REFERENCES _departement(code_departement);
 
 --contrainte de etablissement
 alter table _etablissement ADD CONSTRAINT fk_etablissement_commune FOREIGN KEY (code_commune) REFERENCES _commune(code_insee_de_la_commune);
 alter table _etablissement ADD CONSTRAINT fk_etablissement_type FOREIGN KEY (code_nat) REFERENCES _type(code_nature);
 alter table _etablissement ADD CONSTRAINT fk_etablissement_academie FOREIGN KEY (code_academie) REFERENCES _academie(code_academie);
 
-
 --quartier prioritaire
 alter table _a_proximite ADD CONSTRAINT uai_fk FOREIGN KEY (uai) REFERENCES _etablissement(uai);
 alter table _a_proximite ADD CONSTRAINT code_quartier_fk FOREIGN KEY (code_quartier_prioritaire) REFERENCES _quartier_prioritaire(code_quartier_prioritaire);
 
-alter table
-
-alter table
+--contrainte carac_selon_classe
+alter table _carac_selon_classe ADD CONSTRAINT etablissement_fk FOREIGN KEY (uai) REFERENCES _etablissement(uai);
+alter table _carac_selon_classe ADD CONSTRAINT _annee_fk FOREIGN KEY (annee_scolaire) REFERENCES _annee(annee_scolaire);
+alter table _carac_selon_classe ADD CONSTRAINT _classe_fk FOREIGN KEY (classe) REFERENCES _classe(id_classe);
