@@ -127,13 +127,17 @@ CREATE TABLE _a_proximite(
 
 
 --contrainte carac_tout_etablissement
-alter table _carac_tout_etablissement ADD CONSTRAINT competences_fk FOREIGN KEY(lib_competence) REFERENCES _competences(lib_competence);
+alter table _carac_tout_etablissement ADD CONSTRAINT uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
+alter table _carac_tout_etablissement ADD CONSTRAINT annee_fk FOREIGN KEY(annee_scolaire) REFERENCES _etablissement(annee_scolaire);
 
 --contrainte carac_college
 alter table _carac_college ADD CONSTRAINT uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
 alter table _carac_college ADD CONSTRAINT annee_scolaire_fk FOREIGN KEY(anne_scolaire) REFERENCES _etablissement(uai);
 
+--contrainte departement
 alter table _departement ADD CONSTRAINT fk_departement_region FOREIGN KEY (code_region) REFERENCES _region(code_region);
+
+--contrainte commmune
 alter table _commune ADD CONSTRAINT fk_commune_departement FOREIGN KEY (code_departement) REFERENCES _annee(anne_scolaire);
 
 --contrainte de etablissement
