@@ -2,30 +2,6 @@ drop schema if exists "sae_bdd" cascade;
 create schema "sae_bdd";
 set schema 'sae_bdd'; 
 
---table creer :
-
---region  
-    --contrainte faite
---departement
-    --contrainte faite
---commune
-    --contrainte faite
---etablissement
-    --je suis pas sur de celle la ell est pas faite
---quartier prioritaire
-
---etablissement
-    --contrainte faite
---Type
-
---carac_tout_etablissement
---annee
---carac_college
---classe
---carac_tout_etablissement
---a_proximimté
-
-
 
 CREATE TABLE _region(
     code_region                VARCHAR(3) PRIMARY KEY,
@@ -94,7 +70,7 @@ CREATE TABLE _annee(
     annee_scolaire              VARCHAR(4) PRIMARY KEY
 );
 
---table association entre etablissement et annee
+
 CREATE TABLE _carac_college(
     nb_eleves_hors_segpa_hors_ulis integer,
     nb_eleves_segpa            integer,
