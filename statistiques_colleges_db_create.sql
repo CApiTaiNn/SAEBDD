@@ -1,6 +1,6 @@
-drop schema if exists "pg_sae204_k12" cascade;
-create schema "pg_sae204_k12";
-set schema 'pg_sae204_k12'; 
+drop schema if exists "colleges" cascade;
+create schema "colleges";
+set schema 'colleges'; 
 
 
 CREATE TABLE _region(
