@@ -102,29 +102,33 @@ CREATE TABLE _carac_selon_classe(
 
 
 --contrainte carac_tout_etablissement
-alter table _carac_tout_etablissement ADD CONSTRAINT uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
-alter table _carac_tout_etablissement ADD CONSTRAINT annee_fk FOREIGN KEY(annee_scolaire) REFERENCES _annee(annee_scolaire);
+ALTER TABLE _carac_tout_etablissement ADD CONSTRAINT uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
+ALTER TABLE _carac_tout_etablissement ADD CONSTRAINT annee_fk FOREIGN KEY(annee_scolaire) REFERENCES _annee(annee_scolaire);
+ALTER TABLE _carac_tout_etablissement ADD CONSTRAINT carac_tout_etablissement_pk PRIMARY KEY(uai,anne_scolaire);
 
 --contrainte carac_college
-alter table _carac_college ADD CONSTRAINT uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
-alter table _carac_college ADD CONSTRAINT annee_fk FOREIGN KEY(anne_scolaire) REFERENCES _annee(annee_scolaire);
+ALTER TABLE _carac_college ADD CONSTRAINT uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
+ALTER TABLE _carac_college ADD CONSTRAINT annee_fk FOREIGN KEY(anne_scolaire) REFERENCES _annee(annee_scolaire);
+ALTER TABLE _carac_college ADD CONSTRAINT carac_college_pk PRIMARY KEY(uai,anne_scolaire);
 
 --contrainte departement
-alter table _departement ADD CONSTRAINT fk_departement_region FOREIGN KEY (code_region) REFERENCES _region(code_region);
+ALTER TABLE _departement ADD CONSTRAINT fk_departement_region FOREIGN KEY (code_region) REFERENCES _region(code_region);
 
 --contrainte commmune
-alter table _commune ADD CONSTRAINT fk_commune_departement FOREIGN KEY (code_departement) REFERENCES _departement(code_departement);
+ALTER TABLE _commune ADD CONSTRAINT fk_commune_departement FOREIGN KEY (code_departement) REFERENCES _departement(code_departement);
 
 --contrainte de etablissement
-alter table _etablissement ADD CONSTRAINT fk_etablissement_commune FOREIGN KEY (code_commune) REFERENCES _commune(code_insee_de_la_commune);
-alter table _etablissement ADD CONSTRAINT fk_etablissement_type FOREIGN KEY (code_nat) REFERENCES _type(code_nature);
-alter table _etablissement ADD CONSTRAINT fk_etablissement_academie FOREIGN KEY (code_academie) REFERENCES _academie(code_academie);
+ALTER TABLE _etablissement ADD CONSTRAINT fk_etablissement_commune FOREIGN KEY (code_commune) REFERENCES _commune(code_insee_de_la_commune);
+ALTER TABLE _etablissement ADD CONSTRAINT fk_etablissement_type FOREIGN KEY (code_nat) REFERENCES _type(code_nature);
+ALTER TABLE _etablissement ADD CONSTRAINT fk_etablissement_academie FOREIGN KEY (code_academie) REFERENCES _academie(code_academie);
 
 --quartier prioritaire
-alter table _a_proximite ADD CONSTRAINT uai_fk FOREIGN KEY (uai) REFERENCES _etablissement(uai);
-alter table _a_proximite ADD CONSTRAINT code_quartier_fk FOREIGN KEY (code_quartier_prioritaire) REFERENCES _quartier_prioritaire(code_quartier_prioritaire);
+ALTER TABLE _a_proximite ADD CONSTRAINT uai_fk FOREIGN KEY (uai) REFERENCES _etablissement(uai);
+ALTER TABLE _a_proximite ADD CONSTRAINT code_quartier_fk FOREIGN KEY (code_quartier_prioritaire) REFERENCES _quartier_prioritaire(code_quartier_prioritaire);
+ALTER TABLE _a_proximite ADD CONSTRAINT a_proximite_pk PRIMARY KEY(uai,code_quartier_prioritaire);
 
 --contrainte carac_selon_classe
-alter table _carac_selon_classe ADD CONSTRAINT etablissement_fk FOREIGN KEY (uai) REFERENCES _etablissement(uai);
-alter table _carac_selon_classe ADD CONSTRAINT _annee_fk FOREIGN KEY (annee_scolaire) REFERENCES _annee(annee_scolaire);
-alter table _carac_selon_classe ADD CONSTRAINT _classe_fk FOREIGN KEY (classe) REFERENCES _classe(id_classe);
+ALTER TABLE _carac_selon_classe ADD CONSTRAINT etablissement_fk FOREIGN KEY (uai) REFERENCES _etablissement(uai);
+ALTER TABLE _carac_selon_classe ADD CONSTRAINT _annee_fk FOREIGN KEY (annee_scolaire) REFERENCES _annee(annee_scolaire);
+ALTER TABLE _carac_selon_classe ADD CONSTRAINT _classe_fk FOREIGN KEY (classe) REFERENCES _classe(id_classe);
+ALTER TABLE _carac_selon_classe ADD CONSTRAINT carac_selon_classe_pk PRIMARY KEY(uai,anne_scolaire,classe);
