@@ -74,7 +74,7 @@ CREATE TABLE _annee(
 CREATE TABLE _carac_college(
     nb_eleves_hors_segpa_hors_ulis integer,
     nb_eleves_segpa            integer,
-    nb_eleves_ulis             integer
+    nb_eleves_ulis             integer,
     uai                        VARCHAR(50),
     annee_scolaire              VARCHAR(50)
 );
