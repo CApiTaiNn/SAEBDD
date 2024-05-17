@@ -1,6 +1,6 @@
-drop schema if exists "sae_bdd" cascade;
-create schema "sae_bdd";
-set schema 'sae_bdd'; 
+drop schema if exists "pg_sae204_k12" cascade;
+create schema "pg_sae204_k12";
+set schema 'pg_sae204_k12'; 
 
 
 CREATE TABLE _region(
