@@ -1,6 +1,6 @@
-drop schema if exists "sae_bdd" cascade;
-create schema "sae_bdd";
-set schema 'sae_bdd'; 
+drop schema if exists "colleges" cascade;
+create schema "colleges";
+set schema 'colleges'; 
 
 
 CREATE TABLE _region(
