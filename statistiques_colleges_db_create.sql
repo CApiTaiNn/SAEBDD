@@ -67,7 +67,7 @@ CREATE TABLE _carac_tout_etablissement(
 
 
 CREATE TABLE _annee(
-    annee_scolaire              VARCHAR(4) PRIMARY KEY,
+    annee_scolaire              VARCHAR(4) PRIMARY KEY
 );
 
 
@@ -80,7 +80,7 @@ CREATE TABLE _carac_college(
 );
 
 CREATE TABLE _classe(
-    id_classe                  VARCHAR(50) PRIMARY KEY,
+    id_classe                  VARCHAR(50) PRIMARY KEY
 );
 
 
