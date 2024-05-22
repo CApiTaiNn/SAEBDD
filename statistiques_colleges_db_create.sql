@@ -50,8 +50,7 @@ CREATE TABLE _etablissement(
     longitude                  real,
     code_academie              integer,
     code_nat                   VARCHAR(50),
-    code_commune               VARCHAR(3),
-    code_academie              VARCHAR(50)              
+    code_commune               VARCHAR(3),             
 );
 
 
@@ -74,13 +73,13 @@ CREATE TABLE _annee(
 CREATE TABLE _carac_college(
     nb_eleves_hors_segpa_hors_ulis integer,
     nb_eleves_segpa            integer,
-    nb_eleves_ulis             integer
+    nb_eleves_ulis             integer,
     uai                        VARCHAR(50),
     annee_scolaire              VARCHAR(50)
 );
 
 CREATE TABLE _classe(
-    id_classe                  VARCHAR(50),
+    id_classe                  VARCHAR(50), PRIMARY KEY
 );
 
 
@@ -107,7 +106,7 @@ alter table _carac_tout_etablissement ADD CONSTRAINT annee_fk FOREIGN KEY(annee_
 
 --contrainte carac_college
 alter table _carac_college ADD CONSTRAINT uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
-alter table _carac_college ADD CONSTRAINT annee_fk FOREIGN KEY(anne_scolaire) REFERENCES _annee(annee_scolaire);
+alter table _carac_college ADD CONSTRAINT annee_fk FOREIGN KEY(colaire) REFERENCES _annee(annee_scolaire);
 
 --contrainte departement
 alter table _departement ADD CONSTRAINT fk_departement_region FOREIGN KEY (code_region) REFERENCES _region(code_region);
