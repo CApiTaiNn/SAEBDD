@@ -20,7 +20,7 @@ CREATE TABLE _departement(
 CREATE TABLE _commune(
     code_insee_de_la_commune   VARCHAR(3) PRIMARY KEY,
     nom_dep_la_commune         VARCHAR(50) UNIQUE,
-    code_departement           VARCHAR(50) NULL 
+    code_departement           VARCHAR(50) 
 );
 
 
@@ -50,8 +50,7 @@ CREATE TABLE _etablissement(
     longitude                  real,
     code_academie              integer,
     code_nat                   VARCHAR(50),
-    code_commune               VARCHAR(3),
-    code_academie              VARCHAR(50)              
+    code_commune               VARCHAR(3),            
 );
 
 
