@@ -271,7 +271,7 @@ WbImport -file=./fr-en-ips-colleges-ap2022.csv
 --------------------
 --------------------
 -- STATS SUR LES DONNEES : a décommenter pour obtenir le résultat
-/*
+
 select count(distinct uai) as nb_row_temp_fr_en_etablissements_ep
 from _temp_fr_en_etablissements_ep;
 -- 8500 établissements en tout
@@ -298,13 +298,15 @@ select numero_college as uai
 from _temp_fr_en_college_effectif_niveau_sexe_lv) as intersection;
 -- 1414 (1414 si pas de restriction sur type_etablissement)
 -- A priori tous les colleges de fr_en_etablissements_ep
-*/
+
 
 ------------------------------------------------------
 ---- DISTRIBUTION DES DONNEES DANS LES TABLES
 ------------------------------------------------------
 -- _region : 19 n-uplets
-delete from _region
+delete from _departement;
+delete from _commune;
+delete from _region;
 insert into _region (code_region, libelle_region)
   select distinct code_region, libelle_region
   from _temp_fr_en_etablissements_ep
@@ -312,7 +314,7 @@ insert into _region (code_region, libelle_region)
   
 
 -- _departement : 98 n-uplets --> il en manque
-delete from _departement
+delete from _departement;
 insert into _departement(code_du_departement, nom_departement, code_region)
   select distinct code_departement, libelle_departement, code_region
   from _temp_fr_en_etablissements_ep
@@ -402,7 +404,7 @@ delete from _academie;
 INSERT INTO _academie (code_academie,lib_academie)
   select distinct code_academie, libelle_academie
   from _temp_fr_en_etablissements_ep
-  where (code_academie) not in (select code_academie from _academie);
+  where (code_academie) is not null and (code_academie) not in (select code_academie from _academie) and not null;
 
 -- Nettoyage des noms d'académies : majuscules et sans accents
 update _academie
@@ -413,8 +415,6 @@ update _academie
 set lib_academie = replace(lib_academie,'È','E');
 update _academie
 set lib_academie = replace(lib_academie,'Ô','O');
-
-delete from 
 
 ------------------------
 -- Quartier prioritaire
@@ -429,17 +429,16 @@ INSERT INTO _quartier_prioritaire(code_quartier_prioritaire, nom_quartier_priori
 --Type
 delete from _type;
 INSERT INTO _type (code_nature, libelle_nature)
-  select code_nature, libelle_nature
+  select distinct code_nature, libelle_nature
   from _temp_fr_en_etablissements_ep
   where (code_nature) not in (select code_nature from _type)
-
 
 
 ---------------------
 --Etablissement
 delete from _etablissement;
 INSERT INTO _etablissement (uai, nom_etablissement, secteur, code_postal, lattitude, longitude, code_insee_de_la_commune, nom_de_la_commune, code_academie, code_nature)
-select uai, nom_etablissement, statut_public_prive, code_postal, latitude, longitude, code_commune, nom_commune, code_academie, code_nature
+select distinct uai, nom_etablissement, statut_public_prive, code_postal, latitude, longitude, code_commune, nom_commune, code_academie, code_nature
 from _temp_fr_en_etablissements_ep
 where (uai) not in (select uai from _etablissement)
 
