@@ -1,6 +1,6 @@
-drop schema if exists "sae_bdd" cascade;
-create schema "sae_bdd";
-set schema 'sae_bdd'; 
+drop schema if exists "colleges" cascade;
+create schema "colleges";
+set schema 'colleges'; 
 
 
 CREATE TABLE _region(
@@ -50,7 +50,7 @@ CREATE TABLE _etablissement(
     longitude                  real,
     code_academie              integer,
     code_nat                   VARCHAR(50),
-    code_commune               VARCHAR(3),            
+    code_commune               VARCHAR(3),             
 );
 
 
@@ -61,7 +61,7 @@ CREATE TABLE _carac_tout_etablissement(
     ecart_type_de_l_ips        real,
     ep                         VARCHAR(50),
     uai                        VARCHAR(50),
-    annee_scolaire              VARCHAR(4)
+    annee_scolaire             VARCHAR(4)
 );
 
 
@@ -73,13 +73,14 @@ CREATE TABLE _annee(
 CREATE TABLE _carac_college(
     nb_eleves_hors_segpa_hors_ulis integer,
     nb_eleves_segpa            integer,
-    nb_eleves_ulis             integer
+    nb_eleves_ulis             integer,
+    nb_eleves_ulis             integer,
     uai                        VARCHAR(50),
-    annee_scolaire              VARCHAR(50)
+    annee_scolaire             VARCHAR(50)
 );
 
 CREATE TABLE _classe(
-    id_classe                  VARCHAR(50),
+    id_classe                  VARCHAR(50) PRIMARY KEY
 );
 
 
@@ -101,29 +102,33 @@ CREATE TABLE _carac_selon_classe(
 
 
 --contrainte carac_tout_etablissement
-alter table _carac_tout_etablissement ADD CONSTRAINT uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
-alter table _carac_tout_etablissement ADD CONSTRAINT annee_fk FOREIGN KEY(annee_scolaire) REFERENCES _annee(annee_scolaire);
+ALTER TABLE _carac_tout_etablissement ADD CONSTRAINT carac_tout_etablissement_uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
+ALTER TABLE _carac_tout_etablissement ADD CONSTRAINT carac_tout_etablissement_annee_fk FOREIGN KEY(annee_scolaire) REFERENCES _annee(annee_scolaire);
+ALTER TABLE _carac_tout_etablissement ADD CONSTRAINT carac_tout_etablissement_pk PRIMARY KEY(uai,annee_scolaire);
 
 --contrainte carac_college
-alter table _carac_college ADD CONSTRAINT uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
-alter table _carac_college ADD CONSTRAINT annee_fk FOREIGN KEY(anne_scolaire) REFERENCES _annee(annee_scolaire);
+ALTER TABLE _carac_college ADD CONSTRAINT carac_college_uai_fk FOREIGN KEY(uai) REFERENCES _etablissement(uai);
+ALTER TABLE _carac_college ADD CONSTRAINT carac_college_annee_fk FOREIGN KEY(annee_scolaire) REFERENCES _annee(annee_scolaire);
+ALTER TABLE _carac_college ADD CONSTRAINT carac_college_pk PRIMARY KEY(uai,annee_scolaire);
 
 --contrainte departement
-alter table _departement ADD CONSTRAINT fk_departement_region FOREIGN KEY (code_region) REFERENCES _region(code_region);
+ALTER TABLE _departement ADD CONSTRAINT fk_departement_region FOREIGN KEY (code_region) REFERENCES _region(code_region);
 
 --contrainte commmune
-alter table _commune ADD CONSTRAINT fk_commune_departement FOREIGN KEY (code_departement) REFERENCES _departement(code_departement);
+ALTER TABLE _commune ADD CONSTRAINT fk_commune_departement FOREIGN KEY (code_departement) REFERENCES _departement(code_departement);
 
 --contrainte de etablissement
-alter table _etablissement ADD CONSTRAINT fk_etablissement_commune FOREIGN KEY (code_commune) REFERENCES _commune(code_insee_de_la_commune);
-alter table _etablissement ADD CONSTRAINT fk_etablissement_type FOREIGN KEY (code_nat) REFERENCES _type(code_nature);
-alter table _etablissement ADD CONSTRAINT fk_etablissement_academie FOREIGN KEY (code_academie) REFERENCES _academie(code_academie);
+ALTER TABLE _etablissement ADD CONSTRAINT fk_etablissement_commune FOREIGN KEY (code_commune) REFERENCES _commune(code_insee_de_la_commune);
+ALTER TABLE _etablissement ADD CONSTRAINT fk_etablissement_type FOREIGN KEY (code_nat) REFERENCES _type(code_nature);
+ALTER TABLE _etablissement ADD CONSTRAINT fk_etablissement_academie FOREIGN KEY (code_academie) REFERENCES _academie(code_academie);
 
 --quartier prioritaire
-alter table _a_proximite ADD CONSTRAINT uai_fk FOREIGN KEY (uai) REFERENCES _etablissement(uai);
-alter table _a_proximite ADD CONSTRAINT code_quartier_fk FOREIGN KEY (code_quartier_prioritaire) REFERENCES _quartier_prioritaire(code_quartier_prioritaire);
+ALTER TABLE _a_proximite ADD CONSTRAINT a_proximite_uai_fk FOREIGN KEY (uai) REFERENCES _etablissement(uai);
+ALTER TABLE _a_proximite ADD CONSTRAINT a_proximite_code_quartier_fk FOREIGN KEY (code_quartier_prioritaire) REFERENCES _quartier_prioritaire(code_quartier_prioritaire);
+ALTER TABLE _a_proximite ADD CONSTRAINT a_proximite_pk PRIMARY KEY(uai,code_quartier_prioritaire);
 
 --contrainte carac_selon_classe
-alter table _carac_selon_classe ADD CONSTRAINT etablissement_fk FOREIGN KEY (uai) REFERENCES _etablissement(uai);
-alter table _carac_selon_classe ADD CONSTRAINT _annee_fk FOREIGN KEY (annee_scolaire) REFERENCES _annee(annee_scolaire);
-alter table _carac_selon_classe ADD CONSTRAINT _classe_fk FOREIGN KEY (classe) REFERENCES _classe(id_classe);
+ALTER TABLE _carac_selon_classe ADD CONSTRAINT carac_selon_classe_etablissement_fk FOREIGN KEY (uai) REFERENCES _etablissement(uai);
+ALTER TABLE _carac_selon_classe ADD CONSTRAINT carac_selon_classe_annee_fk FOREIGN KEY (annee_scolaire) REFERENCES _annee(annee_scolaire);
+ALTER TABLE _carac_selon_classe ADD CONSTRAINT carac_selon_classe_classe_fk FOREIGN KEY (classe) REFERENCES _classe(id_classe);
+ALTER TABLE _carac_selon_classe ADD CONSTRAINT carac_selon_classe_pk PRIMARY KEY(uai,annee_scolaire,classe);
