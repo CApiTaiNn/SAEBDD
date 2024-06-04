@@ -420,9 +420,9 @@ set lib_academie = replace(lib_academie,'Ô','O');
 -- Quartier prioritaire
 delete from _quartier_prioritaire;
 INSERT INTO _quartier_prioritaire(code_quartier_prioritaire, nom_quartier_prioritaire)
-  select distinct qp_a_proximite, nom_du_qp
+  select distinct on (qp_a_proximite) qp_a_proximite, nom_du_qp
   from _temp_fr_en_etablissements_ep
-  where (qp_a_proximite) not in (select code_quartier_prioritaire from _quartier_prioritaire)
+  where (nom_du_qp) is not null and qp_a_proximite not in (select code_quartier_prioritaire from _quartier_prioritaire);
 
 
 ----------------------
@@ -431,16 +431,16 @@ delete from _type;
 INSERT INTO _type (code_nature, libelle_nature)
   select distinct code_nature, libelle_nature
   from _temp_fr_en_etablissements_ep
-  where (code_nature) not in (select code_nature from _type)
+  where (code_nature) is not null and code_nature not in (select code_nature from _type);
 
 
 ---------------------
 --Etablissement
 delete from _etablissement;
 INSERT INTO _etablissement (uai, nom_etablissement, secteur, code_postal, lattitude, longitude, code_insee_de_la_commune, nom_de_la_commune, code_academie, code_nature)
-select distinct uai, nom_etablissement, statut_public_prive, code_postal, latitude, longitude, code_commune, nom_commune, code_academie, code_nature
-from _temp_fr_en_etablissements_ep
-where (uai) not in (select uai from _etablissement)
+  select uai, nom_etablissement, statut_public_prive, code_postal, latitude, longitude, code_commune, nom_commune, code_academie, code_nature
+  from _temp_fr_en_etablissements_ep
+  where (nom_etablissement) is not null and (statut_public_prive) is not null and (uai) not in (select uai from _etablissement);
 
 --- et tout le reste
 

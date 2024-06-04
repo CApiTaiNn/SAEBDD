@@ -35,7 +35,7 @@ create table _commune( -- infos à croiser dans 3 fichiers
     -- constraint commune_uk unique(nom_de_la_commune), -- c'est faux !!!! plusieurs code insee pour la même commune
     constraint commune_fk_se_situe
         foreign key (code_du_departement) 
-        references _departement(code_du_departement)
+        references _departement(code_du_departement) on delete cascade
 );
 
 
