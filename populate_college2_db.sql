@@ -271,7 +271,7 @@ WbImport -file=./fr-en-ips-colleges-ap2022.csv
 --------------------
 --------------------
 -- STATS SUR LES DONNEES : a décommenter pour obtenir le résultat
-
+/*
 select count(distinct uai) as nb_row_temp_fr_en_etablissements_ep
 from _temp_fr_en_etablissements_ep;
 -- 8500 établissements en tout
@@ -298,15 +298,12 @@ select numero_college as uai
 from _temp_fr_en_college_effectif_niveau_sexe_lv) as intersection;
 -- 1414 (1414 si pas de restriction sur type_etablissement)
 -- A priori tous les colleges de fr_en_etablissements_ep
-
+*/
 
 ------------------------------------------------------
 ---- DISTRIBUTION DES DONNEES DANS LES TABLES
 ------------------------------------------------------
 -- _region : 19 n-uplets
-delete from _departement;
-delete from _commune;
-delete from _region;
 insert into _region (code_region, libelle_region)
   select distinct code_region, libelle_region
   from _temp_fr_en_etablissements_ep
@@ -314,7 +311,6 @@ insert into _region (code_region, libelle_region)
   
 
 -- _departement : 98 n-uplets --> il en manque
-delete from _departement;
 insert into _departement(code_du_departement, nom_departement, code_region)
   select distinct code_departement, libelle_departement, code_region
   from _temp_fr_en_etablissements_ep
@@ -358,7 +354,6 @@ create table _temp_communes(
   NOM_EPCI          varchar(75),
   Nom_region        varchar(26)
 );
-
 delete from _temp_communes;
 WbImport -file=./correspondance-code-cedex-code-insee.csv
          -header=true
@@ -386,13 +381,14 @@ insert into _commune (code_insee_de_la_commune, nom_de_la_commune, code_du_depar
   where (code_commune, upper(nom_commune)) not in (select code_insee_de_la_commune, nom_de_la_commune from _commune) ;
 
 -- Il manque des départements dans _departement
-
-insert into _departement (code_du_departement, code_region, nom_departement)
-  values ('015','84','CANTAL'),
-         ('032','76','GERS'),
+INSERT INTO _departement (code_du_departement, code_region, nom_departement)
+  VALUES ('048','76','LOZERE'),
+         ('015','84','CANTAL'),
          ('043','84','HAUTE-LOIRE'),
-         ('048','76','LOZERE');
+         ('032','76','GERS'); -- Valeur absente dans _temp_fr_en_etablissements_ep
 
+         
+-- _commune
 insert into _commune (code_insee_de_la_commune, nom_de_la_commune, code_du_departement)
   select distinct code_insee_de_la_commune, nom_de_la_commune, code_du_departement
   from _temp_fr_en_ips_colleges_ap2022
@@ -400,48 +396,210 @@ insert into _commune (code_insee_de_la_commune, nom_de_la_commune, code_du_depar
   
 ----------------
 --- _academie
-delete from _academie;
-INSERT INTO _academie (code_academie,lib_academie)
-  select distinct code_academie, libelle_academie
-  from _temp_fr_en_etablissements_ep
-  where (code_academie) is not null and (code_academie) not in (select code_academie from _academie) and not null;
-
+DELETE FROM _academie;
+INSERT INTO _academie (code_academie, lib_academie)
+  SELECT DISTINCT code_academie, libelle_academie
+  FROM _temp_fr_en_etablissements_ep
+  WHERE code_academie IS NOT NULL AND libelle_academie IS NOT NULL -- On retire les valeurs nulles
+  AND NOT EXISTS (SELECT 1 FROM _academie a WHERE a.code_academie = code_academie); -- pour éviter les doublons
+  
 -- Nettoyage des noms d'académies : majuscules et sans accents
-update _academie
-set lib_academie = upper(lib_academie);
-update _academie
-set lib_academie = replace(lib_academie,'É','E');
-update _academie
-set lib_academie = replace(lib_academie,'È','E');
-update _academie
-set lib_academie = replace(lib_academie,'Ô','O');
+UPDATE _academie
+SET lib_academie = UPPER(lib_academie); -- Mise en majuscules
+UPDATE _academie
+SET lib_academie = REPLACE(lib_academie,'È','E'); -- Suppression des accents
+UPDATE _academie
+SET lib_academie = REPLACE(lib_academie,'É','E'); -- Suppression des accents
+UPDATE _academie
+SET lib_academie = REPLACE(lib_academie,'Ô','O'); -- Suppression des accents
 
 ------------------------
 -- Quartier prioritaire
-delete from _quartier_prioritaire;
-INSERT INTO _quartier_prioritaire(code_quartier_prioritaire, nom_quartier_prioritaire)
-  select distinct on (qp_a_proximite) qp_a_proximite, nom_du_qp
-  from _temp_fr_en_etablissements_ep
-  where (nom_du_qp) is not null and qp_a_proximite not in (select code_quartier_prioritaire from _quartier_prioritaire);
+truncate table _quartier_prioritaire cascade;
+--- A compléter
+-- MÉTHODE : supprimer temporairement les clés primaires pour insérer toute les données
+-- puis insérer les données dans la table
+-- retirer les doublons
+-- rétablir les clés primaires
 
+-- Suppression des clés primaires
+ALTER TABLE _est_a_proximite_de DROP CONSTRAINT est_a_proximite_de_fk_qp;
+ALTER TABLE _quartier_prioritaire DROP CONSTRAINT quartier_prioritaire_pk;
 
-----------------------
---Type
-delete from _type;
-INSERT INTO _type (code_nature, libelle_nature)
-  select distinct code_nature, libelle_nature
-  from _temp_fr_en_etablissements_ep
-  where (code_nature) is not null and code_nature not in (select code_nature from _type);
+-- Insertion des données
+DELETE FROM _quartier_prioritaire;
+INSERT INTO _quartier_prioritaire (code_quartier_prioritaire, nom_quartier_prioritaire)
+SELECT DISTINCT qp_a_proximite, nom_du_qp
+FROM _temp_fr_en_etablissements_ep
+WHERE qp_a_proximite IS NOT NULL
+AND nom_du_qp IS NOT NULL;
 
+-- Suppression des doublons
+DELETE FROM _quartier_prioritaire
+WHERE code_quartier_prioritaire IN (
+  SELECT code_quartier_prioritaire
+  FROM _quartier_prioritaire
+  GROUP BY code_quartier_prioritaire
+  HAVING COUNT(*) > 1
+);
 
----------------------
---Etablissement
-delete from _etablissement;
-INSERT INTO _etablissement (uai, nom_etablissement, secteur, code_postal, lattitude, longitude, code_insee_de_la_commune, nom_de_la_commune, code_academie, code_nature)
-  select uai, nom_etablissement, statut_public_prive, code_postal, latitude, longitude, code_commune, nom_commune, code_academie, code_nature
-  from _temp_fr_en_etablissements_ep
-  where (nom_etablissement) is not null and (statut_public_prive) is not null and (uai) not in (select uai from _etablissement);
+-- Rétablissement des clés primaires
+ALTER TABLE _quartier_prioritaire ADD CONSTRAINT quartier_prioritaire_pk PRIMARY KEY (code_quartier_prioritaire);
+ALTER TABLE _est_a_proximite_de ADD CONSTRAINT est_a_proximite_de_fk_qp FOREIGN KEY (code_quartier_prioritaire) REFERENCES _quartier_prioritaire(code_quartier_prioritaire);
 
 --- et tout le reste
+-- Annee
+DELETE FROM _annee;
+INSERT INTO _annee (annee_scolaire)
+  SELECT DISTINCT rentree_scolaire
+  FROM _temp_fr_en_college_effectif_niveau_sexe_lv;
+ 
+-- Type 
+DELETE FROM _type;
+INSERT INTO _type (code_nature, libelle_nature)
+  SELECT DISTINCT code_nature, libelle_nature
+  FROM _temp_fr_en_etablissements_ep
+  WHERE code_nature IS NOT NULL AND libelle_nature IS NOT NULL; -- On retire les valeurs nulles
+
+-- Etablissement
+DELETE FROM _etablissement;
+INSERT INTO _etablissement (uai, nom_etablissement, secteur, code_postal, lattitude, longitude, code_insee_de_la_commune, nom_de_la_commune, code_academie, code_nature)
+SELECT DISTINCT uai, nom_etablissement, statut_public_prive, code_postal, latitude, longitude, code_commune, UPPER(nom_commune), code_academie, code_nature
+FROM _temp_fr_en_etablissements_ep
+WHERE nom_etablissement IS NOT NULL 
+AND code_postal IS NOT NULL 
+AND (code_commune, UPPER(nom_commune)) IN (SELECT code_insee_de_la_commune, NOM_DE_LA_COMMUNE FROM _commune); -- UPPER pour uniformiser les noms car ils sont en majuscules dans _commune
+
+-- Est à proximité de
+DELETE FROM _est_a_proximite_de;
+INSERT INTO _est_a_proximite_de (code_quartier_prioritaire, uai)
+SELECT DISTINCT qp_a_proximite, uai -- On prend des valeurs distinctes
+FROM _temp_fr_en_etablissements_ep
+WHERE qp_a_proximite IS NOT NULL
+AND uai IS NOT NULL
+AND (qp_a_proximite, uai) IN (SELECT code_quartier_prioritaire, uai FROM _quartier_prioritaire, _etablissement); -- On vérifie que les clés étrangères existent
+
+-- Caracteristiques tout etablissement
+DELETE FROM _caracteristiques_tout_etablissement;
+INSERT INTO _caracteristiques_tout_etablissement (uai, annee_scolaire, effectifs)
+SELECT DISTINCT numero_college AS uai, rentree_scolaire, nombre_eleves_total -- numéro de collège est l'uai
+FROM _temp_fr_en_college_effectif_niveau_sexe_lv AS t -- t pour temporaire et est utilisé pour éviter les doublons
+WHERE numero_college IS NOT NULL
+AND rentree_scolaire IS NOT NULL
+AND nombre_eleves_total IS NOT NULL
+AND t.numero_college IN (SELECT uai FROM _etablissement); -- On vérifie que les clés étrangères existent
+
+-- Caracteristiques college
+DELETE FROM _caracteristiques_college;
+INSERT INTO _caracteristiques_college (uai, annee_scolaire, nbre_eleves_hors_segpa_hors_ulis, nbre_eleves_segpa, nbre_eleves_ulis, ips, ecart_type_de_l_ips, ep)
+-- ep AS FALSE car on ne sait pas si le collège est en éducation prioritaire ou non
+SELECT DISTINCT t.numero_college AS uai, t.rentree_scolaire, (t.nombre_eleves_total - t.nombre_eleves_segpa - t.nombre_eleves_ulis) AS nombre_eleves_total_hors_segpa_hors_ulis, t.nombre_eleves_segpa, t.nombre_eleves_ulis, ips, ecart_type_de_l_ips, FALSE AS ep
+-- Jointure avec les IPS pour récupérer les valeurs
+FROM _temp_fr_en_college_effectif_niveau_sexe_lv t
+JOIN _temp_fr_en_ips_colleges_ap2022 i ON t.numero_college = i.uai
+-- On vérifie que les clés étrangères existent
+WHERE t.numero_college IN (SELECT uai FROM _etablissement);
+    
+-- ep est un booléen, pour savoir si le collège est en éducation prioritaire il faut regarder si le collège est à proximité d'un quartier prioritaire
+UPDATE _caracteristiques_college
+SET ep = TRUE
+WHERE uai IN (SELECT uai FROM _est_a_proximite_de);
+
+-- Caracteristiques selon classe
+DELETE FROM _caracteristiques_selon_classe;
+
+-- Insertion nécessaire pour les clés étrangères qui sont dans les tables de _caracteristiques_selon_classe
+INSERT INTO _classe (id_classe)
+VALUES ('6eme'), ('5eme'), ('4eme'), ('3eme');
+
+-- Insertion des classes de 6eme
+INSERT INTO _caracteristiques_selon_classe (id_classe, uai, annee_scolaire, nbre_eleves_hors_segpa_hors_ulis_selon_niveau, nbre_eleves_segpa_selon_niveau, nbre_eleves_ulis_selon_niveau, effectifs_filles, effectifs_garcons)
+SELECT
+    '6eme' AS id_classe, numero_college AS uai, rentree_scolaire AS annee_scolaire,
+    _6eme_total AS nbre_eleves_hors_segpa_hors_ulis_selon_niveau, _6eme_segpa AS nbre_eleves_segpa_selon_niveau,
+    _6eme_ulis AS nbre_eleves_ulis_selon_niveau, _6eme_filles AS effectifs_filles, _6emes_garcons AS effectifs_garcons
+FROM _temp_fr_en_college_effectif_niveau_sexe_lv AS t
+WHERE
+    t._6eme_total <> 0 -- On ne prend pas les classes vides
+    AND t.numero_college IN (SELECT uai FROM _etablissement); -- On vérifie que les clés étrangères existent et que l'étalissement existe
+
+-- Insertion des classes de 5eme
+INSERT INTO _caracteristiques_selon_classe (id_classe, uai, annee_scolaire, nbre_eleves_hors_segpa_hors_ulis_selon_niveau, nbre_eleves_segpa_selon_niveau, nbre_eleves_ulis_selon_niveau, effectifs_filles, effectifs_garcons)
+
+SELECT
+    '5eme' AS id_classe, numero_college AS uai, rentree_scolaire AS annee_scolaire,
+    _5eme_total AS nbre_eleves_hors_segpa_hors_ulis_selon_niveau, _5eme_segpa AS nbre_eleves_segpa_selon_niveau,
+    _5eme_ulis AS nbre_eleves_ulis_selon_niveau, _5eme_filles AS effectifs_filles, _5emes_garcons AS effectifs_garcons
+FROM _temp_fr_en_college_effectif_niveau_sexe_lv AS t
+WHERE
+    t._5eme_total <> 0 -- On ne prend pas les classes vides
+    AND t.numero_college IN (SELECT uai FROM _etablissement); -- On vérifie que les clés étrangères existent et que l'étalissement existe
+
+
+-- Insertion des classes de 4eme
+INSERT INTO _caracteristiques_selon_classe (id_classe, uai, annee_scolaire, nbre_eleves_hors_segpa_hors_ulis_selon_niveau, nbre_eleves_segpa_selon_niveau, nbre_eleves_ulis_selon_niveau, effectifs_filles, effectifs_garcons)
+SELECT
+    '4eme' AS id_classe, numero_college AS uai, rentree_scolaire AS annee_scolaire,
+    _4eme_total AS nbre_eleves_hors_segpa_hors_ulis_selon_niveau, _4eme_segpa AS nbre_eleves_segpa_selon_niveau,
+    _4eme_ulis AS nbre_eleves_ulis_selon_niveau, _4eme_filles AS effectifs_filles, _4emes_garcons AS effectifs_garcons
+FROM _temp_fr_en_college_effectif_niveau_sexe_lv AS t
+WHERE
+    t._4eme_total <> 0 -- On ne prend pas les classes vides
+    AND t.numero_college IN (SELECT uai FROM _etablissement); -- On vérifie que les clés étrangères existent et que l'étalissement existe
+
+
+-- Insertion des classes de 3eme
+INSERT INTO _caracteristiques_selon_classe (id_classe, uai, annee_scolaire, nbre_eleves_hors_segpa_hors_ulis_selon_niveau, nbre_eleves_segpa_selon_niveau, nbre_eleves_ulis_selon_niveau, effectifs_filles, effectifs_garcons)
+SELECT
+    '3eme' AS id_classe, numero_college AS uai, rentree_scolaire AS annee_scolaire,
+    _3eme_total AS nbre_eleves_hors_segpa_hors_ulis_selon_niveau, _3eme_segpa AS nbre_eleves_segpa_selon_niveau,
+    _3eme_ulis AS nbre_eleves_ulis_selon_niveau, _3eme_filles AS effectifs_filles, _3emes_garcons AS effectifs_garcons
+FROM _temp_fr_en_college_effectif_niveau_sexe_lv AS t
+WHERE
+    t._3eme_total <> 0 -- On ne prend pas les classes vides
+    AND t.numero_college IN (SELECT uai FROM _etablissement); -- On vérifie que les clés étrangères existent et que l'étalissement existe
 
 commit;
+-- NEVOT Pierre, LE VERGE Lou 1C1
+-- SAE 2.04 Exploitation de base de données
+
+
+select nbre_eleves_ulis from _caracteristiques_college;
+ 
+select effectifs_filles,effectifs_garcons from _caracteristiques_selon_classe;
+ 
+select code_quartier_prioritaire from _quartier_prioritaire;
+ 
+select code_academie from _academie;
+
+CREATE OR REPLACE VIEW vue_etablissement AS
+SELECT 
+    qp.code_quartier_prioritaire,
+    a.code_academie,
+    cc.nbre_eleves_ulis,
+    csc.effectifs_filles,
+    csc.effectifs_garcons
+FROM 
+    _etablissement e
+JOIN
+    _est_a_proximite_de prox ON e.uai = prox.uai
+JOIN 
+    _quartier_prioritaire qp ON prox.code_quartier_prioritaire = qp.code_quartier_prioritaire
+JOIN 
+    _caracteristiques_selon_classe csc ON e.uai = csc.uai
+JOIN 
+    _caracteristiques_college cc ON e.uai = cc.uai
+JOIN 
+    _academie a ON e.code_academie = a.code_academie;
+
+WbExport -file=vue_sae.csv
+         -outputDir=.
+         -type=text
+         -sourceTable=vue_etablissement
+         -schema=colleges2
+         -delimiter=','
+         -header=true
+         -keyColumns=code_quartier_prioritaire, code_academie, nbre_eleves_ulis ,effectifs_filles, effectifs_garcons
+         -dateFormat='d/M/y'
+         -timestampFormat='d/M/y H:m:s'
+         ;
